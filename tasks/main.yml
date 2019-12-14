@@ -22,22 +22,22 @@
         - nfs-utils
       state: present
 
-  - name: Install packages for DHCP/PXE install
-    yum:
-      name:
-        - dhcp
-        - syslinux
-        - tftp-server
-      state: present
-    when: not staticips
+  # - name: Install packages for DHCP/PXE install
+  #   yum:
+  #     name:
+  #       - dhcp
+  #       - syslinux
+  #       - tftp-server
+  #     state: present
+  #   when: not staticips
 
-  - name: Write out dhcp file
-    template:
-      src: ../templates/dhcpd.conf.j2
-      dest: /etc/dhcp/dhcpd.conf
-    notify:
-      - restart dhcpd
-    when: not staticips
+  # - name: Write out dhcp file
+  #   template:
+  #     src: ../templates/dhcpd.conf.j2
+  #     dest: /etc/dhcp/dhcpd.conf
+  #   notify:
+  #     - restart dhcpd
+  #   when: not staticips
 
   - name: Write out named file
     template:
@@ -97,23 +97,23 @@
       - /var/www/html/install
       - /var/www/html/ignition
 
-  - name: Delete OCP4 files, if requested, to download again
-    file:
-       state: absent
-       path: "{{ item }}"
-    with_items:
-      - "/usr/local/src/openshift-client-linux.tar.gz"
-      - "/usr/local/src/openshift-install-linux.tar.gz"
-      - "/var/www/html/install/bios.raw.gz"
-      - "/var/lib/tftpboot/rhcos/initramfs.img"
-      - "/var/lib/tftpboot/rhcos/kernel"
-    when: force_ocp_download
+  # - name: Delete OCP4 files, if requested, to download again
+  #   file:
+  #      state: absent
+  #      path: "{{ item }}"
+  #   with_items:
+  #     - "/usr/local/src/openshift-client-linux.tar.gz"
+  #     - "/usr/local/src/openshift-install-linux.tar.gz"
+  #     - "/var/www/html/install/bios.raw.gz"
+  #     - "/var/lib/tftpboot/rhcos/initramfs.img"
+  #     - "/var/lib/tftpboot/rhcos/kernel"
+  #   when: force_ocp_download
 
-  - name: Downloading OCP4 installer Bios
-    get_url:
-      url: "{{ ocp_bios}}"
-      dest: /var/www/html/install/bios.raw.gz
-      mode: 0555
+  # - name: Downloading OCP4 installer Bios
+  #   get_url:
+  #     url: "{{ ocp_bios}}"
+  #     dest: /var/www/html/install/bios.raw.gz
+  #     mode: 0555
 
   - name: Open up firewall ports
     firewalld:
@@ -163,21 +163,21 @@
     notify:
       - restart nfs
 
-  - name: Create TFTP config
-    file:
-      path: /var/lib/tftpboot/pxelinux.cfg
-      state: directory
-      mode: 0755
-    notify:
-      - restart tftp
-    when: not staticips
+  # - name: Create TFTP config
+  #   file:
+  #     path: /var/lib/tftpboot/pxelinux.cfg
+  #     state: directory
+  #     mode: 0755
+  #   notify:
+  #     - restart tftp
+  #   when: not staticips
 
-  - name: Create TFTP RHCOS dir
-    file:
-      path: /var/lib/tftpboot/rhcos
-      state: directory
-      mode: 0755
-    when: not staticips
+  # - name: Create TFTP RHCOS dir
+  #   file:
+  #     path: /var/lib/tftpboot/rhcos
+  #     state: directory
+  #     mode: 0755
+  #   when: not staticips
 
   - name: SEBool allow haproxy connect any port
     seboolean:
@@ -187,74 +187,74 @@
     notify:
       - restart haproxy
 
-  - name: Copy over files needed for TFTP
-    shell: "cp -a /usr/share/syslinux/* /var/lib/tftpboot"
-    when: not staticips
+  # - name: Copy over files needed for TFTP
+  #   shell: "cp -a /usr/share/syslinux/* /var/lib/tftpboot"
+  #   when: not staticips
 
-  - name: Downloading OCP4 installer initramfs
-    get_url:
-      url: "{{ ocp_initramfs }}"
-      dest: /var/lib/tftpboot/rhcos/initramfs.img
-      mode: 0555
-    when: not staticips
+  # - name: Downloading OCP4 installer initramfs
+  #   get_url:
+  #     url: "{{ ocp_initramfs }}"
+  #     dest: /var/lib/tftpboot/rhcos/initramfs.img
+  #     mode: 0555
+  #   when: not staticips
 
-  - name: Downloading OCP4 installer kernel
-    get_url:
-      url: "{{ ocp_install_kernel }}"
-      dest: /var/lib/tftpboot/rhcos/kernel
-      mode: 0555
-    when: not staticips
+  # - name: Downloading OCP4 installer kernel
+  #   get_url:
+  #     url: "{{ ocp_install_kernel }}"
+  #     dest: /var/lib/tftpboot/rhcos/kernel
+  #     mode: 0555
+  #   when: not staticips
 
-  - name: Generate pxe config files
-    block:
-    - name: Set the default tftp file
-      template:
-        src: ../templates/default.j2
-        dest: /var/lib/tftpboot/pxelinux.cfg/default
-        mode: 0555
-      notify:
-        - restart tftp
+  # - name: Generate pxe config files
+  #   block:
+  #   - name: Set the default tftp file
+  #     template:
+  #       src: ../templates/default.j2
+  #       dest: /var/lib/tftpboot/pxelinux.cfg/default
+  #       mode: 0555
+  #     notify:
+  #       - restart tftp
 
-    - name: Set the bootstrap specific tftp file
-      template:
-        src: ../templates/pxe-bootstrap.j2
-        dest: "/var/lib/tftpboot/pxelinux.cfg/01-{{ bootstrap.macaddr | regex_replace (':', '-')}}"
-        mode: 0555
-      notify:
-        - restart tftp
+  #   - name: Set the bootstrap specific tftp file
+  #     template:
+  #       src: ../templates/pxe-bootstrap.j2
+  #       dest: "/var/lib/tftpboot/pxelinux.cfg/01-{{ bootstrap.macaddr | regex_replace (':', '-')}}"
+  #       mode: 0555
+  #     notify:
+  #       - restart tftp
 
-    - name: Set the master specific tftp files
-      template:
-        src: ../templates/pxe-master.j2
-        dest: "/var/lib/tftpboot/pxelinux.cfg/01-{{ item.macaddr | regex_replace (':', '-')}}"
-        mode: 0555
-      with_items: "{{ masters }}"
-      notify:
-        - restart tftp
+  #   - name: Set the master specific tftp files
+  #     template:
+  #       src: ../templates/pxe-master.j2
+  #       dest: "/var/lib/tftpboot/pxelinux.cfg/01-{{ item.macaddr | regex_replace (':', '-')}}"
+  #       mode: 0555
+  #     with_items: "{{ masters }}"
+  #     notify:
+  #       - restart tftp
 
-    - name: Set the worker specific tftp files
-      template:
-        src: ../templates/pxe-worker.j2
-        dest: "/var/lib/tftpboot/pxelinux.cfg/01-{{ item.macaddr | regex_replace (':', '-')}}"
-        mode: 0555
-      with_items: "{{ workers }}"
-      notify:
-        - restart tftp
-    when: not staticips
+  #   - name: Set the worker specific tftp files
+  #     template:
+  #       src: ../templates/pxe-worker.j2
+  #       dest: "/var/lib/tftpboot/pxelinux.cfg/01-{{ item.macaddr | regex_replace (':', '-')}}"
+  #       mode: 0555
+  #     with_items: "{{ workers }}"
+  #     notify:
+  #       - restart tftp
+  #   when: not staticips
 
-  - name: Installing TFTP Systemd helper
-    copy:
-      src: ../files/start-tftp.sh
-      dest: /usr/local/bin/start-tftp.sh
-      mode: '0555'
-    when: not staticips
+  # - name: Installing TFTP Systemd helper
+  #   copy:
+  #     src: ../files/start-tftp.sh
+  #     dest: /usr/local/bin/start-tftp.sh
+  #     mode: '0555'
+  #   when: not staticips
 
-  - name: Installing TFTP Systemd unit file
-    copy:
-      src: ../files/helper-tftp.service
-      dest: /etc/systemd/system/helper-tftp.service
-      mode: '0655'
-    when: not staticips
+  # - name: Installing TFTP Systemd unit file
+  #   copy:
+  #     src: ../files/helper-tftp.service
+  #     dest: /etc/systemd/system/helper-tftp.service
+  #     mode: '0655'
+  #   when: not staticips
 
   - name: Systemd daemon reload
     systemd:
@@ -275,38 +275,38 @@
       - nfs-lock
       - nfs-idmap
 
-  - name: Starting DHCP/PXE services
-    service:
-      name: "{{ item }}"
-      enabled: yes
-      state: started
-    with_items:
-      - dhcpd
-      - tftp
-      - helper-tftp
-    when: not staticips
+  # - name: Starting DHCP/PXE services
+  #   service:
+  #     name: "{{ item }}"
+  #     enabled: yes
+  #     state: started
+  #   with_items:
+  #     - dhcpd
+  #     - tftp
+  #     - helper-tftp
+  #   when: not staticips
 
-  - name: Unmasking Services
-    systemd:
-      name: "{{ item }}"
-      enabled: yes
-      masked: no
-    with_items:
-      - tftp
-    when: not staticips
+  # - name: Unmasking Services
+  #   systemd:
+  #     name: "{{ item }}"
+  #     enabled: yes
+  #     masked: no
+  #   with_items:
+  #     - tftp
+  #   when: not staticips
 
   - name: Set the local resolv.conf file
     template:
       src: ../templates/resolv.conf.j2
       dest: /etc/resolv.conf
 
-  - name: Copy info script over
-    template:
-      src: ../templates/checker.sh.j2
-      dest: /usr/local/bin/helpernodecheck
-      owner: root
-      group: root
-      mode: 0555
+  # - name: Copy info script over
+  #   template:
+  #     src: ../templates/checker.sh.j2
+  #     dest: /usr/local/bin/helpernodecheck
+  #     owner: root
+  #     group: root
+  #     mode: 0555
 
   - name: Copying over nfs-provisioner rbac
     copy:
